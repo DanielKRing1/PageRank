@@ -1,5 +1,6 @@
-import {current} from '@reduxjs/toolkit';
-import * as DictUtil from '../dictionary/Operations';
+import * as DictUtil from '@asianpersonn/dict-utils';
+
+import { Dict } from './types';
 
 type ConnectedNode<N> = {
   node: N;

@@ -1,5 +1,7 @@
 import Heap from 'heap';
 
+import { Dict } from './types';
+
 function getMST<T>(originEntity: T, getId: (entity: T) => string, getConnectedNodes: (originEntity: T) => T[], getDistance: (entity: T) => number, maxDepth = Number.POSITIVE_INFINITY) {
   const mst: Dict<number> = {};
   // Min-heap prioritizing smaller distances in MST

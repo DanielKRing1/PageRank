@@ -1,0 +1,30 @@
+{
+  "name": "@asianpersonn/pagerank",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/pageRank.js",
+  "types": "dist/pageRank.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielKRing1/PageRank.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DanielKRing1/PageRank/issues"
+  },
+  "homepage": "https://github.com/DanielKRing1/PageRank#readme",
+  "keyword": [
+    "pagerank",
+    "page",
+    "rank",
+    "graph"
+  ],
+  "dependencies": {
+    "@asianpersonn/dict-utils": "^1.0.0"
+  }
+}
