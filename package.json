@@ -1,6 +1,6 @@
 {
   "name": "@asianpersonn/pagerank",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/pageRank.js",
   "types": "dist/pageRank.d.ts",
