@@ -138,7 +138,7 @@ describe('PageRank algorithm', () => {
     console.log('INITIAL MAP');
     console.log(initialMap);
 
-    const redistributedWeights = redistributeWeight(initialMap, 0.5, ['a', 'b', 'c']);
+    const redistributedWeights = redistributeWeight(initialMap, 0.75, ['a', 'b', 'c']);
     console.log('Redistributed weights');
     console.log(redistributedWeights);
 
