@@ -1,4 +1,4 @@
-import * as DictUtil from '@asianpersonn/dict-utils';
+import DictUtils from '@asianpersonn/dict-utils';
 
 import { Dict } from './types';
 
@@ -63,7 +63,7 @@ export function pageRank<N, E>(
     const nodeEdges: E[] = getEdges(node);
     const allNodeEdgeAttrs: Dict<number>[] = nodeEdges.map((nodeEdge: E) => getEdgeAttrs(nodeEdge));
     // 1.2. Get sum of all node's edges
-    const summedNodeEdgeAttrs: Dict<number> = DictUtil.sumDicts(...allNodeEdgeAttrs);
+    const summedNodeEdgeAttrs: Dict<number> = DictUtils.sumDicts(...allNodeEdgeAttrs);
 
     // 2. For each of node's edges
     for (const nodeEdge of nodeEdges) {
@@ -73,15 +73,15 @@ export function pageRank<N, E>(
 
       // 3. Get weight of the current edge, relative to the node's other edges
       const curEdgeAttrs: Dict<number> = getEdgeAttrs(nodeEdge);
-      const curEdgeWeights: Dict<number> = DictUtil.divideDicts(curEdgeAttrs, summedNodeEdgeAttrs);
+      const curEdgeWeights: Dict<number> = DictUtils.divideDicts(curEdgeAttrs, summedNodeEdgeAttrs);
 
       // 4. Partition some of the current node's total weight for the current edge's destination node
       const curNodeAttrs: Dict<number> = initialMap[nodeId];
-      const destinationNodeAddendWeights: Dict<number> = DictUtil.multiplyDicts(curNodeAttrs, curEdgeWeights);
+      const destinationNodeAddendWeights: Dict<number> = DictUtils.multiplyDicts(curNodeAttrs, curEdgeWeights);
 
       // 5. Add product of the current node weight and the current edge weight to the destination node
       // Sum of all entries in weightMap should equal 1
-      weightMap[destinationId] = DictUtil.sumDicts(weightMap[destinationId], destinationNodeAddendWeights);
+      weightMap[destinationId] = DictUtils.sumDicts(weightMap[destinationId], destinationNodeAddendWeights);
     }
   }
 
@@ -94,9 +94,9 @@ export function pageRank<N, E>(
     const nodeAttrWeights: Dict<number> = weightMap[nodeKey];
 
     // Take from the rich (Taxes all, but taxing affects 'the rich' more than the poor)
-    const taxedAttrWeights: Dict<number> = DictUtil.multiplyDictScalar(nodeAttrWeights, dampingFactor);
+    const taxedAttrWeights: Dict<number> = DictUtils.multiplyDictScalar(nodeAttrWeights, dampingFactor);
     // Refund to the poor (Refunds to all, but refunding affects 'the poor' more than the rich)
-    const refundedAttrWeights: Dict<number> = DictUtil.sumDictScalar(taxedAttrWeights, weightToRedistribute);
+    const refundedAttrWeights: Dict<number> = DictUtils.sumDictScalar(taxedAttrWeights, weightToRedistribute);
 
     weightMap[nodeKey] = refundedAttrWeights;
   }
@@ -112,7 +112,7 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
     allNodeAttrs.push(nodeAttrs);
   }
   // 1.2. Compute total summed node attributes
-  const summedNodeAttrs: Dict<number> = DictUtil.sumDicts(...allNodeAttrs);
+  const summedNodeAttrs: Dict<number> = DictUtils.sumDicts(...allNodeAttrs);
 
   console.log('1');
   console.log('SUMMED NODE ATTRS');
@@ -122,7 +122,7 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
   let weightMap: Dict<Dict<number>> = {};
   for (const node of allNodes) {
     const nodeAttrs: Dict<number> = getNodeAttrs(node);
-    const weightedNodeAttrs: Dict<number> = DictUtil.divideDicts(nodeAttrs, summedNodeAttrs);
+    const weightedNodeAttrs: Dict<number> = DictUtils.divideDicts(nodeAttrs, summedNodeAttrs);
 
     // 2. Compute node's weighted edge attributes for each node: weighted node attrs = (node's attrs) / (total summed attrs)
     const nodeId: string = getNodeId(node);
@@ -134,27 +134,28 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
 
 export function redistributeWeight(initialWeights: Dict<Dict<number>>, targetCentralWeight: number, centralNodeIds: string[]) {
   // 1. Get "central" weights (in centralNodeIds)
-  const centralNodes: Dict<Dict<number>> = DictUtil.copyDictKeep<Dict<number>>(initialWeights, centralNodeIds);
+  const centralNodes: Dict<Dict<number>> = DictUtils.copyDictKeep<Dict<number>>(initialWeights, centralNodeIds);
   const centralNodeCount = Object.keys(centralNodes).length;
 
   // 2. Get "other" weights (not in centralNodeIds)
-  const otherNodes: Dict<Dict<number>> = DictUtil.copyDictRm<Dict<number>>(initialWeights, centralNodeIds);
+  const otherNodes: Dict<Dict<number>> = DictUtils.copyDictRm<Dict<number>>(initialWeights, centralNodeIds);
   const otherNodeCount = Object.keys(otherNodes).length;
 
   // 3. Sum "central" weights and determine what percentage of weight to redistribute to these central nodes
-  const summedCentralWeights: Dict<number> = DictUtil.sumDicts(...Object.values(centralNodes));
-  const missingWeights: Dict<number> = DictUtil.subScalarDict(targetCentralWeight, summedCentralWeights);
+  const summedCentralWeights: Dict<number> = DictUtils.sumDicts(...Object.values(centralNodes));
+  const missingWeights: Dict<number> = DictUtils.subScalarDict(targetCentralWeight, summedCentralWeights);
   // Clamp min to 0
-  const totalWeightToRedistribute: Dict<number> = DictUtil.mutateDict<number>(missingWeights, (key: string, value: number) => Math.max(0, value));
-  const individualWeightToRedistribute: Dict<number> = DictUtil.divideDictScalar(totalWeightToRedistribute, otherNodeCount);
+  const totalWeightToRedistribute: Dict<number> = DictUtils.mutateDict<number>(missingWeights, (key: string, value: number) => Math.max(0, value));
+  
+  const individualWeightToRedistribute: Dict<number> = DictUtils.divideDictScalar(totalWeightToRedistribute, otherNodeCount);
 
   // 4. Evenly subtract out this percentage from each of the "other" weights
-  const dehydratedOtherWeights: Dict<Dict<number>> = DictUtil.mutateDict<Dict<number>>(otherNodes, (key: string, attrDict: Dict<number>) =>
-    DictUtil.subDicts(attrDict, individualWeightToRedistribute),
+  const dehydratedOtherWeights: Dict<Dict<number>> = DictUtils.mutateDict<Dict<number>>(otherNodes, (key: string, attrDict: Dict<number>) =>
+    DictUtils.subDicts(attrDict, individualWeightToRedistribute),
   );
 
   // 5. Unevenly add in this percentage to the "central" weights
-  const hydratedCentralWeights: Dict<Dict<number>> = DictUtil.mutateDict<Dict<number>>(centralNodes, (key: string, nodeAttrs: Dict<number>) => {
+  const hydratedCentralWeights: Dict<Dict<number>> = DictUtils.mutateDict<Dict<number>>(centralNodes, (key: string, nodeAttrs: Dict<number>) => {
     const hydratedWeights: Dict<number> = {};
 
     // 5.1. For each central node
