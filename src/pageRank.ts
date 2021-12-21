@@ -50,8 +50,8 @@ export function pageRank<N, E>(
   dampingFactor: number = 0.85,
   curIteration: number = 0,
 ): Dict<Dict<number>> {
-  console.log(`Iteration ${curIteration}`);
-  console.log(initialMap);
+  // console.log(`Iteration ${curIteration}`);
+  // console.log(initialMap);
 
   let weightMap: Dict<Dict<number>> = {};
 
@@ -67,6 +67,8 @@ export function pageRank<N, E>(
 
     // 2. For each of node's edges
     for (const nodeEdge of nodeEdges) {
+      // @ts-ignore
+      // console.log(`Edge id: ${nodeEdge.id}`);
       // 2.1. Get edge's destination node
       const destinationNode: N = getDestinationNode(node, nodeEdge);
       const destinationId: string = getNodeId(destinationNode);
@@ -74,10 +76,16 @@ export function pageRank<N, E>(
       // 3. Get weight of the current edge, relative to the node's other edges
       const curEdgeAttrs: Dict<number> = getEdgeAttrs(nodeEdge);
       const curEdgeWeights: Dict<number> = DictUtils.divideDicts(curEdgeAttrs, summedNodeEdgeAttrs);
+      // console.log('edge weight:');
+      // console.log(curEdgeWeights);
 
       // 4. Partition some of the current node's total weight for the current edge's destination node
       const curNodeAttrs: Dict<number> = initialMap[nodeId];
+      // console.log('origin node weight:');
+      // console.log(curNodeAttrs);
       const destinationNodeAddendWeights: Dict<number> = DictUtils.multiplyDicts(curNodeAttrs, curEdgeWeights);
+      // console.log('Addend');
+      // console.log(destinationNodeAddendWeights);
 
       // 5. Add product of the current node weight and the current edge weight to the destination node
       // Sum of all entries in weightMap should equal 1
@@ -114,9 +122,9 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
   // 1.2. Compute total summed node attributes
   const summedNodeAttrs: Dict<number> = DictUtils.sumDicts(...allNodeAttrs);
 
-  console.log('1');
-  console.log('SUMMED NODE ATTRS');
-  console.log(summedNodeAttrs);
+  // console.log('1');
+  // console.log('SUMMED NODE ATTRS');
+  // console.log(summedNodeAttrs);
 
   // 2.1. Get each node's attributes
   let weightMap: Dict<Dict<number>> = {};
@@ -132,7 +140,17 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
   return weightMap;
 }
 
-export function redistributeWeight(initialWeights: Dict<Dict<number>>, targetCentralWeight: number, centralNodeIds: string[]) {
+/**
+ * Given a map of normalized node weights (using 'getInitialWeights'),
+ *    redistribute weight to the given 'central' nodes, from all of the 'other' nodes.
+ * This method will make the sum of the central nodes' weights equal the given 'targetCentralWeight'
+ * 
+ * @param initialWeights 
+ * @param targetCentralWeight 
+ * @param centralNodeIds 
+ * @returns 
+ */
+export function redistributeNodeWeight(initialWeights: Dict<Dict<number>>, targetCentralWeight: number, centralNodeIds: string[]): Dict<Dict<number>> {
   // 1. Get "central" weights (in centralNodeIds)
   const centralNodes: Dict<Dict<number>> = DictUtils.copyDictKeep<Dict<number>>(initialWeights, centralNodeIds);
   const centralNodeCount = Object.keys(centralNodes).length;
@@ -180,4 +198,94 @@ export function redistributeWeight(initialWeights: Dict<Dict<number>>, targetCen
     ...dehydratedOtherWeights,
     ...hydratedCentralWeights,
   };
+}
+
+/**
+ * Given a map of edge weights,
+ *    scale up the weight of edges connected to the given 'central' nodes
+ * Unlike 'redistributeNodeWeight', this method does not redistribute weight to 'central' edges so that they sum to a given total target weight
+ *    bcus this would disproportionately benefit each edge, since
+ *    some nodes' sets of 'central' edges might already exceed a given total 'target', while others' might not
+ * 
+ * @param edges 
+ * @param multiplier 
+ * @param centralNodeIds 
+ * @returns 
+ */
+
+export function scaleEdgeAttrs<E>(edges: E[], getEdgeAttrs: (edge: E) => Dict<number>, centralEdgeMultiplier: number, isConnectedToCentralNode: (edge: E) => boolean): E[] {
+  return edges.map((edge: E) => {
+    // 1. Modify 'central' edges
+    if(isConnectedToCentralNode(edge)) {
+      // 1.1. Get numeric attributes
+      const edgeAttrs: Dict<number> = getEdgeAttrs(edge);
+      // 1.2. Apply multiplier
+      const modifiedEdgeAttrs: Dict<number> = DictUtils.multiplyDictScalar(edgeAttrs, centralEdgeMultiplier);
+
+      return {
+        ...edge,
+        ...modifiedEdgeAttrs,
+      };
+
+    }
+    // 2. Return untouched 'other' edges
+    else return { ...edge };
+  });
+}
+
+/**
+ * Magnitude > 0 scales edge attributes up, and
+ *    magnitudes < 0 scale edge attributes down
+ * 
+ * 1    -> Max scaling
+ * 0.5  -> Heavy scaling
+ * 0.1  -> Light scaling
+ * 0.01 -> Very light scaling
+ * 0    -> No scaling
+ * 
+ * @param edges 
+ * @param getEdgeAttrs 
+ * @param magnitude Number from -1 to 1
+ * @param isConnectedToCentralNode 
+ * @returns 
+ */
+export function inflateEdgeAttrs<E>(edges: E[], getEdgeAttrs: (edge: E) => Dict<number>, magnitude: number, isConnectedToCentralNode: (edge: E) => boolean): E[] {
+  const MAX_PROPORTION: number = 25;
+
+  // Clamp magnitude between 0 and 1
+  magnitude = Math.min(Math.max(magnitude, -1), 1);
+  magnitude = (1 / MAX_PROPORTION) * Math.E ** (3.2189 * magnitude);
+
+  const centralTotalAttrs: Dict<number> = edges.reduce((total: Dict<number>, edge: E) => {
+    if(isConnectedToCentralNode(edge))  total = DictUtils.sumDicts(total, getEdgeAttrs(edge));
+
+    return total;
+  }, {});
+  const otherTotalAttrs: Dict<number> = edges.reduce((total: Dict<number>, edge: E) => {
+    if(!isConnectedToCentralNode(edge)) total = DictUtils.sumDicts(total, getEdgeAttrs(edge));
+
+    return total;
+  }, {});
+
+  const targetProportion: number = MAX_PROPORTION *  magnitude;
+  const curProportions: Dict<number> = DictUtils.divideDicts(centralTotalAttrs, otherTotalAttrs);
+  const multipliers: Dict<number> = DictUtils.divideScalarDict(targetProportion, curProportions);
+
+  return edges.map((edge: E) => {
+    // 1. Modify 'central' edges
+    if(isConnectedToCentralNode(edge)) {
+      // 1.1. Get numeric attributes
+      const edgeAttrs: Dict<number> = getEdgeAttrs(edge);
+      // 1.2. Apply multiplier
+      const modifiedEdgeAttrs: Dict<number> = DictUtils.multiplyDicts(edgeAttrs, multipliers);
+
+      return {
+        ...edge,
+        ...modifiedEdgeAttrs,
+      };
+
+    }
+    // 2. Return untouched 'other' edges
+    else return { ...edge };
+  });
 }

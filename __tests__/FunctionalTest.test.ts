@@ -1,6 +1,6 @@
 import DictUtils from '@asianpersonn/dict-utils';
 import { Dict } from '@asianpersonn/dict-utils/dist/types';
-import {getInitialWeights, pageRank, redistributeWeight} from '../src/pageRank';
+import {getInitialWeights, pageRank, redistributeNodeWeight} from '../src/pageRank';
 
 describe('PageRank algorithm', () => {
   beforeAll(async () => {});
@@ -138,7 +138,7 @@ describe('PageRank algorithm', () => {
     console.log('INITIAL MAP');
     console.log(initialMap);
 
-    const redistributedWeights = redistributeWeight(initialMap, 0.75, ['a', 'b', 'c']);
+    const redistributedWeights = redistributeNodeWeight(initialMap, 0.75, ['a', 'b', 'c']);
     console.log('Redistributed weights');
     console.log(redistributedWeights);
 
