@@ -32,7 +32,7 @@ type ConnectedEdge<E> = {
 
 //   // 3.1. Init a map, NM, to track the weights for each node, for the NEXT ITERATION, where each node start with a weight of 0
 //   // 3.2. Choose arbitrary starting point as "current node"
-//   // 3.3. For each node conencted to current node, compute next weight, NW, using the curent node's weight, CW, such that NW += CW / (R/SR)
+//   // 3.3. For each node connected to current node, compute next weight, NW, using the curent node's weight, CW, such that NW += CW / (R/SR)
 
 //   // 4. Repeat step 3 until the weights converge
 
@@ -184,7 +184,7 @@ export function redistributeNodeWeight(initialWeights: Dict<Dict<number>>, targe
 
       // 5.2. Compute the weight of each central node, relative to the other central nodes
       const totalWeight = weightTotalToRedistribute[attrKey];
-      const nodeWeight = attrVal / centralSummedWeights[attrKey];
+      const nodeWeight = centralSummedWeights[attrKey] != 0 ? attrVal / centralSummedWeights[attrKey] : 0;
       // The weight to redistribute is not equally redistributed among "central" nodes: Central nodes with higher starting weight get a larger cut
       const earnedWeight = totalWeight * nodeWeight;
 
