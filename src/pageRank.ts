@@ -75,7 +75,7 @@ export function pageRank<N, E>(
 
       // 3. Get weight of the current edge, relative to the node's other edges
       const curEdgeAttrs: Dict<number> = getEdgeAttrs(nodeEdge);
-      const curEdgeWeights: Dict<number> = DictUtils.divideDicts(curEdgeAttrs, summedNodeEdgeAttrs);
+      const curEdgeWeights: Dict<number> = DictUtils.divideDictsIgnore0(curEdgeAttrs, summedNodeEdgeAttrs);
       // console.log('edge weight:');
       // console.log(curEdgeWeights);
 
@@ -130,7 +130,7 @@ export function getInitialWeights<N, E>(allNodes: N[], getNodeId: (node: N) => s
   let weightMap: Dict<Dict<number>> = {};
   for (const node of allNodes) {
     const nodeAttrs: Dict<number> = getNodeAttrs(node);
-    const weightedNodeAttrs: Dict<number> = DictUtils.divideDicts(nodeAttrs, summedNodeAttrs);
+    const weightedNodeAttrs: Dict<number> = DictUtils.divideDictsIgnore0(nodeAttrs, summedNodeAttrs);
 
     // 2. Compute node's weighted edge attributes for each node: weighted node attrs = (node's attrs) / (total summed attrs)
     const nodeId: string = getNodeId(node);
@@ -166,7 +166,7 @@ export function redistributeNodeWeight(initialWeights: Dict<Dict<number>>, targe
   // Clamp min to 0
   const weightTotalToRedistribute: Dict<number> = DictUtils.mutateDict<number>(weightsMissing, (key: string, value: number) => Math.max(0, value));
 
-  const otherWeightToRedistributePercent: Dict<number> = DictUtils.divideDicts(weightTotalToRedistribute, otherSummedWeights);
+  const otherWeightToRedistributePercent: Dict<number> = DictUtils.divideDictsIgnore0(weightTotalToRedistribute, otherSummedWeights);
   const otherWeightRemainingPercent: Dict<number> = DictUtils.subScalarDict(1, otherWeightToRedistributePercent);
 
   // 4. Evenly divide out this percentage from each of the "other" weights
@@ -268,8 +268,8 @@ export function inflateEdgeAttrs<E>(edges: E[], getEdgeAttrs: (edge: E) => Dict<
   }, {});
 
   const targetProportion: number = MAX_PROPORTION *  magnitude;
-  const curProportions: Dict<number> = DictUtils.divideDicts(centralTotalAttrs, otherTotalAttrs);
-  const multipliers: Dict<number> = DictUtils.divideScalarDict(targetProportion, curProportions);
+  const curProportions: Dict<number> = DictUtils.divideDictsIgnore0(centralTotalAttrs, otherTotalAttrs);
+  const multipliers: Dict<number> = DictUtils.divideScalarDictIgnore0(targetProportion, curProportions);
 
   return edges.map((edge: E) => {
     // 1. Modify 'central' edges

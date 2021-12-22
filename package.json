@@ -31,7 +31,7 @@
     "graph"
   ],
   "dependencies": {
-    "@asianpersonn/dict-utils": "^1.0.4"
+    "@asianpersonn/dict-utils": "^1.0.5"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",

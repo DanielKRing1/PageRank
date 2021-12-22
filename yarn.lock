@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@asianpersonn/dict-utils@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@asianpersonn/dict-utils/-/dict-utils-1.0.4.tgz#cbb0f251f34463931fa53fb77897b8c0a095506f"
-  integrity sha512-q/yTUs/5lXIg9TCtRT8Kx/crMRR01IQBRjbe23LuCU/1LVIm+j6SEOOtc+8stsaY0UCPrwZxiR/m0XFhS7QzQw==
+"@asianpersonn/dict-utils@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@asianpersonn/dict-utils/-/dict-utils-1.0.5.tgz#e66ed9b77ba0e20c980c295f6fbf575d0679570c"
+  integrity sha512-mcSrORWYTLu53hmcanIEWN2ESDKU8hHFgKFZtyoKNbxAelZD08FwzWf7dF5lk/N3cWDq4PIUpYSiUksc77omaw==
   dependencies:
     npm-run-all "^4.1.5"
 
